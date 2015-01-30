@@ -1,6 +1,10 @@
-Installation
+# Installation #
 
 First ensure you have listed the Sterling Satis Repository in the composer.json file:
+
+
+```
+#!json
 
  "repositories": [
          {
@@ -8,20 +12,46 @@ First ensure you have listed the Sterling Satis Repository in the composer.json 
              "url": "http://satis.sterling-design.co.uk"
          }
      ]
+```
+
 
 Then add this line to your composer file:
 
-'sterling/track' : 'dev-master'
 
-Run composer install
+```
+#!json
+
+'sterling/track' : 'dev-master'
+```
+
+
+Run 
+```
+#!json
+
+composer install
+```
+
 
 Next you need to register the service provider in app/config/app.php:
 
+
+```
+#!php
+
 'Sterling\Track\TrackServiceProvider'
+```
+
 
 All the changes are logged in a database table so run:
 
+
+```
+#!cmd
+
 php artisan migrate --package="sterling/track"
+```
+
 
 Tip: To ensure you don't run into problems when refreshing or rolling back the migrations you can publish this migration so that artisan includes it in future.
 
