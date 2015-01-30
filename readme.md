@@ -59,7 +59,7 @@ Tip: To ensure you don't run into problems when refreshing or rolling back the m
 ```
 #!php
 
-php artisan migrate:publish --package="sterling/track"
+php artisan migrate:publish sterling/track
 ```
 
 
@@ -126,7 +126,7 @@ To publish the config file use:
 ```
 #!php
 
-php artisan config:publish --package="sterling/track"
+php artisan config:publish sterling/track
 ```
 
 
