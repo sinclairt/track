@@ -1,6 +1,10 @@
-Installation
+# Installation #
 
 First ensure you have listed the Sterling Satis Repository in the composer.json file:
+
+
+```
+#!php
 
  "repositories": [
          {
@@ -8,26 +12,58 @@ First ensure you have listed the Sterling Satis Repository in the composer.json 
              "url": "http://satis.sterling-design.co.uk"
          }
      ]
+```
+
 
 Then add this line to your composer file:
 
-'sterling/track' : 'dev-master'
 
-Run composer install
+```
+#!php
+
+'sterling/track' : 'dev-master'
+```
+
+
+Run 
+```
+#!php
+
+composer install
+```
+
 
 Next you need to register the service provider in app/config/app.php:
 
+
+```
+#!php
+
 'Sterling\Track\TrackServiceProvider'
+```
+
 
 All the changes are logged in a database table so run:
 
+
+```
+#!php
+
 php artisan migrate --package="sterling/track"
+```
+
 
 Tip: To ensure you don't run into problems when refreshing or rolling back the migrations you can publish this migration so that artisan includes it in future.
 
-php artisan migrate:publish --package="sterling/track"
 
-Usage
+```
+#!php
+
+php artisan migrate:publish sterling/track
+```
+
+
+# Usage #
 
 All you need to do is use the TrackTrait in any model which extends Eloquent that you want tracking.
 
@@ -41,15 +77,21 @@ After calling this method return the results into the method trackPivotChanges()
 
 Example:
 
+
+```
+#!php
+
 $ids = [1, 2, 3, 4];
 
 $changes = $group->addressees()->sync($ids);
 
 $group->trackPivotChanges($changes, $group, 'Sterling\Repositories\Addressee\Addressee');
+```
+
 
 It is not necessary to use a fully qualified class name however if you want to use the built in presenter then you will, otherwise you can create your own implmentation.
 
-Presenting
+# Presenting #
 
 To get the changes of particular object call the method trackedChanges() on your tracked object. This will return an Eloquent Object.
 
@@ -57,23 +99,35 @@ The Track model has a view presenter configured for your benefit.
 
 Example:
 
+
+```
+#!php
+
 @foreach($object->trackedChanges as $change)
 	<tr>
 		<td>{{ $change->present()->prettyChange() }}</td>
 	</tr>
 @endforeach
+```
+
 
 The following text will be returned:
 
-"Updated"  : User updated the example field from the old value to the new value
-"Attached" : User attached an ExampleObject called Example
+"Updated"   : User updated the example field from the old value to the new value
+"Attached"  : User attached an ExampleObject called Example
 "Detached" : User detached an ExampleObject called Example
-"Default"  : User created/deleted/restored Example with an ID of 1
+"Default"     : User created/deleted/restored Example with an ID of 1
 
 The presenter uses the Auth User model by default but you can change this in the config file.
 
 To publish the config file use:
 
-php artisan config:publish --package="sterling/track"
+
+```
+#!php
+
+php artisan config:publish sterling/track
+```
+
 
 The field name used for display is also listed here with username being the default. Equally, when the Presenter is called and it names the attached/detached object it is using the field name of "name" by default. There is no configuration for this as it could be different for each class, in this circumstance you can use the Presenter as a template and create your own, or ensure your tables that have pivots have a name field on them.
