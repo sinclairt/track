@@ -45,9 +45,16 @@ class TrackPresenter extends Presenter {
 			$user = new $userModel;
 			$user = $user->findOrFail($this->user_id);
 			//check config for user display name
-			$userDisplayName = Config::get('track::user.displayName');
+			if(isset($user->username))
+			{
+				return ucwords($user->username);
+			}
+			elseif(isset($user->name))
+			{
+				return ucwords($user->name);
+			}
 
-			return ucwords($user->$userDisplayName);
+			return "An unknown user";			
 		} catch (Exception $e)
 		{
 			return "An unknown user";
