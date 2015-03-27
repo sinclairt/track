@@ -19,11 +19,10 @@ class TrackServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{
+		$this->package('sterling/track');
+
 		AliasLoader::getInstance()->alias('Track', 'Sterling\Track\Facades\Track');
 
-		$this->publishes([
-			__DIR__.'/../../migrations/' => base_path('/database/migrations')
-		], 'migrations');
 	}
 
 	/**
@@ -33,6 +32,11 @@ class TrackServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
+		$this->app['track'] = $this->app->share(function ($app)
+		{
+			return new Track;
+		});
+
 		$this->app->bind('Sterling\Track\TrackInterface', 'Sterling\Track\Track');
 	}
 
