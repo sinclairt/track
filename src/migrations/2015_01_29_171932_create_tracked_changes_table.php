@@ -17,9 +17,9 @@ class CreateTrackedChangesTable extends Migration {
 			$table->increments('id');
 			$table->string('tracked_type');
 			$table->integer('tracked_id');
-			$table->integer('user_id')->nullable();
+			$table->integer('user_id')->nullable()->default(0);
 			$table->string('event');
-			$table->string('field');
+			$table->string('field')->nullable();
 			$table->text('old_value')->nullable();
 			$table->text('new_value')->nullable();
 			$table->timestamps();
