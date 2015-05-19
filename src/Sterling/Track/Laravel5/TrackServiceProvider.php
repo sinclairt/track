@@ -22,7 +22,7 @@ class TrackServiceProvider extends ServiceProvider {
 		AliasLoader::getInstance()->alias('Track', 'Sterling\Track\Facades\Track');
 
 		$this->publishes([
-							 __DIR__.'/../../migrations/' => base_path('/database/migrations')
+							 __DIR__.'/../../../migrations/' => base_path('/database/migrations')
 						 ], 'migrations');
 	}
 
