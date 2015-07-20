@@ -1,4 +1,6 @@
-<?php namespace Sterling\Track;
+<?php
+
+namespace Sterling\Track;
 
 use Auth, Log, Exception, App;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -7,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * Class TrackTrait
  * @package Sterling\Track
  */
-trait TrackTrait {
+trait TrackTrait
+{
 
 	/**
 	 * @var
@@ -27,7 +30,11 @@ trait TrackTrait {
 	/**
 	 * @var array
 	 */
-	protected $timeStamps = ['created_at', 'deleted_at', 'updated_at'];
+	protected $timeStamps = [
+		'created_at',
+		'deleted_at',
+		'updated_at'
+	];
 
 	/**
 	 *
@@ -67,7 +74,8 @@ trait TrackTrait {
 				return $model->log('Restored', $model);
 			});
 
-		} catch (Exception $e)
+		}
+		catch (Exception $e)
 		{
 			//do nothing
 		}
@@ -119,7 +127,7 @@ trait TrackTrait {
 	 */
 	public function postSave()
 	{
-		$changed = [];
+		$changed = [ ];
 		foreach ($this->newData as $key => $value)
 		{
 			$changed = $this->checkForChange($key, $value, $changed);
@@ -131,18 +139,20 @@ trait TrackTrait {
 	/**
 	 * @param $event
 	 * @param $model
+	 *
 	 * @return array
 	 */
 	public function createData($event, $model)
 	{
 
-		$user_id = is_null(Auth::user()) ? '' : Auth::user()->getAuthIdentifier();
+		$user_id = is_null(Auth::user()) ? '' : Auth::user()
+													->getAuthIdentifier();
 
 		return [
-			'user_id'      => $user_id,
+			'user_id' => $user_id,
 			'tracked_type' => get_class($model),
-			'tracked_id'   => $model->id,
-			'event'        => $event
+			'tracked_id' => $model->id,
+			'event' => $event
 		];
 	}
 
@@ -150,13 +160,17 @@ trait TrackTrait {
 	 * @param $key
 	 * @param $value
 	 * @param $changed
+	 *
 	 * @return mixed
 	 */
 	private function checkForChange($key, $value, $changed)
 	{
-		if ($this->previousData[$key] !== $value)
+		if ($this->previousData[ $key ] !== $value)
 		{
-			$changed[$key] = ['new' => $value, 'old' => $this->previousData[$key]];
+			$changed[ $key ] = [
+				'new' => $value,
+				'old' => $this->previousData[ $key ]
+			];
 
 			return $changed;
 		}
@@ -171,14 +185,14 @@ trait TrackTrait {
 	 */
 	public function logChanges($changed, $model = null, $method = 'Updated')
 	{
-		$model = is_null($model)? $this : $model;
+		$model = is_null($model) ? $this : $model;
 
 		foreach ($changed as $key => $value)
 		{
 			$data = $this->createData($method, $this);
-			$data['field'] = $key;
-			$data['new_value'] = $value['new'];
-			$data['old_value'] = $value['old'];
+			$data[ 'field' ] = $key;
+			$data[ 'new_value' ] = $value[ 'new' ];
+			$data[ 'old_value' ] = $value[ 'old' ];
 
 			$this->log("Updated", $model, $data);
 		}
@@ -192,8 +206,8 @@ trait TrackTrait {
 		// drop time stamps
 		foreach ($this->timeStamps as $value)
 		{
-			unset($this->previousData[$value]);
-			unset($this->newData[$value]);
+			unset($this->previousData[ $value ]);
+			unset($this->newData[ $value ]);
 		}
 	}
 
@@ -205,8 +219,8 @@ trait TrackTrait {
 	{
 		if (gettype($value) == 'object')
 		{
-			unset($this->previousData[$key]);
-			unset($this->newData[$key]);
+			unset($this->previousData[ $key ]);
+			unset($this->newData[ $key ]);
 		}
 	}
 
@@ -221,42 +235,24 @@ trait TrackTrait {
 	 */
 	public function trackPivotChanges($changes, $model, $class)
 	{
-		$data = [];
-		foreach ($changes['attached'] as $item)
+		$data = [ ];
+		foreach ($changes[ 'attached' ] as $item)
 		{
-			$data[$class] = ['new' => $item, 'old' => null];
+			$data[ $class ] = [
+				'new' => $item,
+				'old' => null
+			];
 			$model->logChanges($data, $model, 'Attached');
 		}
 
-		foreach ($changes['detached'] as $item)
+		foreach ($changes[ 'detached' ] as $item)
 		{
-			$data[$class] = ['new' => null, 'old' => $item];
+			$data[ $class ] = [
+				'new' => null,
+				'old' => $item
+			];
 			$model->logChanges($data, $model, 'Detached');
 		}
-	}
-
-	public function createGroupedChanges($changes, $where = [])
-	{
-		$groupedChanges = [ ];
-
-		foreach ($changes as $change)
-		{
-			$key = class_basename($change->tracked_type);
-			$class = App::make($change->tracked_type);
-			$object = $class->find($change->tracked_id);
-			$objectName = $object->name == null ? $object->title : $object->name;
-			$key .= ": " . $objectName;
-			$groupedChanges[ $key ] = Track::where('tracked_id', $object->id)
-										   ->where('tracked_type', get_class($object))
-										   ->where(function($q) use ($where)
-										   {
-											   if(sizeof($where) == 3)
-												   $q->where($where[0], $where[1], $where[2]);
-										   })
-										   ->get();
-		}
-
-		return $groupedChanges;
 	}
 
 }

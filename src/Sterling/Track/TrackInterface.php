@@ -1,6 +1,8 @@
 <?php namespace Sterling\Track;
 
-interface TrackInterface {
-
+interface TrackInterface
+{
 	public function tracked();
+
+	public function createGroupedChanges($changes, $where = [ ]);
 }
