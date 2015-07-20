@@ -4,5 +4,5 @@ interface TrackInterface
 {
 	public function tracked();
 
-	public function createGroupedChanges($changes, $where = [ ]);
+	public static function createGroupedChanges($changes, $where = [ ]);
 }

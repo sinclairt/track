@@ -19,7 +19,7 @@ class Track extends \Eloquent implements TrackInterface
 		return $this->morphTo();
 	}
 
-	public function createGroupedChanges($changes, $where = [ ])
+	public static function createGroupedChanges($changes, $where = [ ])
 	{
 		$groupedChanges = [ ];
 
