@@ -3,6 +3,7 @@
 namespace Sterling\Track;
 
 use Laracasts\Presenter\PresentableTrait;
+use App;
 
 class Track extends \Eloquent implements TrackInterface
 {
