@@ -8,7 +8,8 @@ use Exception;
  * Class TrackPresenter
  * @package Sterling\Track
  */
-class TrackPresenter extends Presenter {
+class TrackPresenter extends Presenter
+{
 
 	/**
 	 * @return string
@@ -18,7 +19,7 @@ class TrackPresenter extends Presenter {
 		switch ($this->event)
 		{
 			case "Updated":
-				$message = $this->getUserDisplayName() . " updated the " . $this->field . " field from " . $this->old_value . " to " . $this->new_value;
+				$message = $this->getUserDisplayName() . " updated the " . $this->field . " field from " . $this->checkForEmpty($this->old_value) . " to " . $this->checkForEmpty($this->new_value);
 				break;
 			case "Attached":
 				$message = $this->getUserDisplayName() . " attached " . $this->grammarise($this->getShortHandClassName($this->field)) . " called " . $this->getClassDisplayName($this->field, $this->new_value);
@@ -33,6 +34,11 @@ class TrackPresenter extends Presenter {
 		return $message . " at " . $this->updated_at;
 	}
 
+	private function checkForEmpty($value)
+	{
+		return $value == null or $value == '' ? '{empty}' : $value;
+	}
+
 	/**
 	 * @return mixed
 	 */
@@ -45,17 +51,18 @@ class TrackPresenter extends Presenter {
 			$user = new $userModel;
 			$user = $user->findOrFail($this->user_id);
 			//check config for user display name
-			if(isset($user->username))
+			if (isset($user->username))
 			{
 				return ucwords($user->username);
 			}
-			elseif(isset($user->name))
+			elseif (isset($user->name))
 			{
 				return ucwords($user->name);
 			}
 
-			return "An unknown user";			
-		} catch (Exception $e)
+			return "An unknown user";
+		}
+		catch (Exception $e)
 		{
 			return "An unknown user";
 		}
@@ -63,13 +70,26 @@ class TrackPresenter extends Presenter {
 
 	private function getClassDisplayName($class, $id)
 	{
-		$object = new $class;
-		$object = $object->find($id);
-		return $object->name;
+		try
+		{
+			$object = new $class;
+			$object = $object->find($id);
+
+			if (isset($object->name))
+				return $object->name;
+
+			if (isset($object->title))
+				return $object->title;
+		}catch(Exception $e)
+		{
+			return "";
+		}
+
 	}
 
 	/**
 	 * @param $class
+	 *
 	 * @return string
 	 */
 	public function getShortHandClassName($class = null)
@@ -83,7 +103,18 @@ class TrackPresenter extends Presenter {
 
 	public function grammarise($word)
 	{
-		$vowels = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
+		$vowels = [
+			'a',
+			'e',
+			'i',
+			'o',
+			'u',
+			'A',
+			'E',
+			'I',
+			'O',
+			'U'
+		];
 		$firstLetter = substr($word, 0, 1);
 
 		return in_array($firstLetter, $vowels) ? 'an ' . $word : 'a ' . $word;

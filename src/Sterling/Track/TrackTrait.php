@@ -165,14 +165,17 @@ trait TrackTrait
 	 */
 	private function checkForChange($key, $value, $changed)
 	{
-		if ($this->previousData[ $key ] !== $value)
+		if (isset($this->previousData[ $key ]))
 		{
-			$changed[ $key ] = [
-				'new' => $value,
-				'old' => $this->previousData[ $key ]
-			];
+			if ($this->previousData[ $key ] !== $value)
+			{
+				$changed[ $key ] = [
+					'new' => $value,
+					'old' => $this->previousData[ $key ]
+				];
 
-			return $changed;
+				return $changed;
+			}
 		}
 
 		return $changed;
