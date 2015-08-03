@@ -149,10 +149,10 @@ trait TrackTrait
 													->getAuthIdentifier();
 
 		return [
-			'user_id' => $user_id,
+			'user_id'      => $user_id,
 			'tracked_type' => get_class($model),
-			'tracked_id' => $model->id,
-			'event' => $event
+			'tracked_id'   => $model->id,
+			'event'        => $event
 		];
 	}
 
@@ -176,6 +176,13 @@ trait TrackTrait
 
 				return $changed;
 			}
+		}
+		else
+		{
+			$changed[ $key ] = [
+				'new' => $value,
+				'old' => ''
+			];
 		}
 
 		return $changed;
