@@ -39,10 +39,10 @@ trait TrackTrait
 	/**
 	 *
 	 */
-	public static function boot()
+	public static function bootTrackTrait()
 	{
 
-		parent::boot();
+//		parent::boot();
 
 		// Model Events: creating, created, updating, updated, saving, saved, deleting, deleted, restoring, restored
 
