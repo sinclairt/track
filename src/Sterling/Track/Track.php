@@ -28,7 +28,7 @@ class Track extends \Eloquent implements TrackInterface
 		{
 			$key = class_basename($change->tracked_type);
 			$class = App::make($change->tracked_type);
-			$object = $class->find($change->tracked_id);
+			$object = method_exists($class, 'withTrashed') ? $class->withTrashed()->find($change->tracked_id) : $class->find($change->tracked_id);
 			$objectName = $object->name == null ? $object->title : $object->name;
 			$key .= ": " . $objectName;
 			$groupedChanges[ $key ] = Track::where('tracked_id', $object->id)
