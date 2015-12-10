@@ -1,24 +1,26 @@
 {
-    "name": "sterling/track",
-    "description": "",
-    "authors": [
-        {
-            "name": "Tom Sinclair (Sterling)",
-            "email": "websupport@sterlingsolutions.co.uk"
-        }
+  "name": "sterling/track",
+  "description": "",
+  "authors": [
+    {
+      "name": "Tom Sinclair (Sterling)",
+      "email": "websupport@sterlingsolutions.co.uk"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0",
+    "illuminate/support": "5.1.*"
+  },
+  "suggest": {
+    "laracasts/presenter": "Use the built in presenter to show changes"
+  },
+  "autoload": {
+    "classmap": [
+      "src/config"
     ],
-    "require": {
-        "php": ">=5.4.0",
-      "illuminate/support": "5.1.*",
-      "laracasts/presenter": "0.2.*"
-    },
-    "autoload": {
-        "classmap": [
-            "src/config"
-        ],
-        "psr-0": {
-            "Sterling\\Track\\": "src/"
-        }
-    },
-    "minimum-stability": "dev"
+    "psr-0": {
+      "Sterling\\Track\\": "src/"
+    }
+  },
+  "minimum-stability": "dev"
 }

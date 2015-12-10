@@ -72,8 +72,12 @@ class TrackPresenter extends Presenter
 	{
 		try
 		{
-			$object = new $class;
-			$object = $object->find($id);
+			$emptyObject = new $class;
+			$object = $emptyObject->find($id);
+
+			if($object == null)
+				if(method_exists($emptyObject, 'withTrashed'))
+					$object = $emptyObject->withTrashed()->find($id);
 
 			if (isset($object->name))
 				return $object->name;
