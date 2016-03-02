@@ -1,6 +1,6 @@
 # Installation #
 
-First ensure you have listed the Sterling Satis Repository in the composer.json file:
+First ensure you have listed the Satis Repository in the composer.json file:
 
 
 ```
@@ -9,7 +9,7 @@ First ensure you have listed the Sterling Satis Repository in the composer.json 
  "repositories": [
          {
              "type": "composer",
-             "url": "http://satis.sterling-design.co.uk"
+             "url": "http://satis.wtbidev.co.uk"
          }
      ]
 ```
@@ -21,7 +21,7 @@ Then add this line to your composer file:
 ```
 #!php
 
-'sterling/track' : 'dev-master'
+'sinclair/track' : 'dev-master'
 ```
 
 
@@ -39,7 +39,7 @@ Next you need to register the service provider in app/config/app.php:
 ```
 #!php
 
-'Sterling\Track\TrackServiceProvider'
+'Sinclair\Track\TrackServiceProvider'
 ```
 
 
@@ -49,7 +49,7 @@ All the changes are logged in a database table so run:
 ```
 #!php
 
-php artisan migrate --package="sterling/track"
+php artisan migrate --package="sinclair/track"
 ```
 
 
@@ -59,7 +59,7 @@ Tip: To ensure you don't run into problems when refreshing or rolling back the m
 ```
 #!php
 
-php artisan migrate:publish sterling/track
+php artisan migrate:publish sinclair/track
 ```
 
 
@@ -85,11 +85,11 @@ $ids = [1, 2, 3, 4];
 
 $changes = $group->addressees()->sync($ids);
 
-$group->trackPivotChanges($changes, $group, 'Sterling\Repositories\Addressee\Addressee');
+$group->trackPivotChanges($changes, $group, 'App\Repositories\Addressee\Addressee');
 ```
 
 
-It is not necessary to use a fully qualified class name however if you want to use the built in presenter then you will, otherwise you can create your own implmentation.
+It is not necessary to use a fully qualified class name however if you want to use the built in presenter then you will, otherwise you can create your own implementation.
 
 # Presenting #
 
@@ -126,7 +126,7 @@ To publish the config file use:
 ```
 #!php
 
-php artisan config:publish sterling/track
+php artisan config:publish sinclair/track
 ```
 
 
