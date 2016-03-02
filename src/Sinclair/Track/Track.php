@@ -9,7 +9,7 @@ class Track extends \Eloquent implements TrackInterface
 {
 	use PresentableTrait;
 
-	protected $presenter = 'Sterling\Track\TrackPresenter';
+	protected $presenter = 'Sinclair\Track\TrackPresenter';
 
 	protected $guarded = [ 'id' ];
 

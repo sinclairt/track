@@ -1,10 +1,10 @@
 {
-  "name": "sterling/track",
+  "name": "sinclair/track",
   "description": "",
   "authors": [
     {
-      "name": "Tom Sinclair (Sterling)",
-      "email": "websupport@sterlingsolutions.co.uk"
+      "name": "Tom Sinclair",
+      "email": "tom.sinclair31@gmail.com"
     }
   ],
   "require": {
@@ -19,7 +19,7 @@
       "src/config"
     ],
     "psr-0": {
-      "Sterling\\Track\\": "src/"
+      "Sinclair\\Track\\": "src/"
     }
   },
   "minimum-stability": "dev"

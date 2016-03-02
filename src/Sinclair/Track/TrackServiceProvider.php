@@ -1,4 +1,4 @@
-<?php namespace Sterling\Track\Laravel5;
+<?php namespace Sinclair\Track;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
@@ -19,11 +19,11 @@ class TrackServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{
-		AliasLoader::getInstance()->alias('Track', 'Sterling\Track\Facades\Track');
+		AliasLoader::getInstance()->alias('Track', 'Sinclair\Track\Facades\Track');
 
 		$this->publishes([
-							 __DIR__.'/../../../migrations/' => base_path('/database/migrations')
-						 ], 'migrations');
+			__DIR__.'/../../../migrations/' => base_path('/database/migrations')
+		], 'migrations');
 	}
 
 	/**
@@ -33,7 +33,7 @@ class TrackServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-		$this->app->bind('Sterling\Track\TrackInterface', 'Sterling\Track\Track');
+		$this->app->bind('Sinclair\Track\TrackInterface', 'Sinclair\Track\Track');
 	}
 
 	/**

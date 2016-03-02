@@ -6,7 +6,7 @@ use Exception;
 
 /**
  * Class TrackPresenter
- * @package Sterling\Track
+ * @package Sinclair\Track
  */
 class TrackPresenter extends Presenter
 {

@@ -1,13 +1,13 @@
 <?php
 
-namespace Sterling\Track;
+namespace Sinclair\Track;
 
 use Auth, Log, Exception, App;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * Class TrackTrait
- * @package Sterling\Track
+ * @package Sinclair\Track
  */
 trait TrackTrait
 {
@@ -87,7 +87,7 @@ trait TrackTrait
 	 */
 	public function trackedChanges()
 	{
-		return $this->morphMany('Sterling\Track\Track', 'tracked');
+		return $this->morphMany('Sinclair\Track\Track', 'tracked');
 	}
 
 	/**
