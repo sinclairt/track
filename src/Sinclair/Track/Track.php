@@ -1,6 +1,6 @@
 <?php
 
-namespace Sterling\Track;
+namespace Sinclair\Track;
 
 use Laracasts\Presenter\PresentableTrait;
 use App;

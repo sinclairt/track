@@ -1,4 +1,4 @@
-<?php namespace Sterling\Track;
+<?php namespace Sinclair\Track;
 
 interface TrackInterface
 {
