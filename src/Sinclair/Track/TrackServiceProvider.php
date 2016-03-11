@@ -23,7 +23,7 @@ class TrackServiceProvider extends ServiceProvider {
 
 		$this->publishes([
 			__DIR__.'/../../migrations/' => base_path('/database/migrations'),
-			__DIR__ .'../../config/' => config_path()
+			__DIR__.'/../../config/' => config_path()
 		]);
 	}
 
