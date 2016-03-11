@@ -47,7 +47,8 @@ class TrackPresenter extends Presenter
 		try
 		{
 			// check config for user model
-			$user = new Config::get('track.user.model');
+			$userModel = Config::get('track.user.model')
+			$user = new $userModel;
 			$user = $user->findOrFail($this->user_id);
 			//check config for user display name
 			if (isset($user->username))
