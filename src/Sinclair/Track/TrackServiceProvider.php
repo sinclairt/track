@@ -22,8 +22,9 @@ class TrackServiceProvider extends ServiceProvider {
 		AliasLoader::getInstance()->alias('Track', 'Sinclair\Track\Facades\Track');
 
 		$this->publishes([
-			__DIR__.'/../../migrations/' => base_path('/database/migrations')
-		], 'migrations');
+			__DIR__.'/../../migrations/' => base_path('/database/migrations'),
+			__DIR_ .'../../config/' => config_path();
+		]);
 	}
 
 	/**
