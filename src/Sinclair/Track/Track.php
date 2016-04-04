@@ -7,41 +7,49 @@ use App;
 
 class Track extends \Eloquent implements TrackInterface
 {
-	use PresentableTrait;
+    use PresentableTrait;
 
-	protected $presenter = 'Sinclair\Track\TrackPresenter';
+    protected $presenter = 'Sinclair\Track\TrackPresenter';
 
-	protected $guarded = [ 'id' ];
+    protected $guarded = [ 'id' ];
 
-	protected $table = "changes";
+    protected $table = "changes";
 
-	public function tracked()
-	{
-		return $this->morphTo();
-	}
+    public function __construct( array $attributes = [ ] )
+    {
+        $this->presenter = config('track.presenter');
 
-	public static function createGroupedChanges($changes, $where = [ ])
-	{
-		$groupedChanges = [ ];
+        parent::__construct($attributes);
+    }
 
-		foreach ($changes as $change)
-		{
-			$key = class_basename($change->tracked_type);
-			$class = App::make($change->tracked_type);
-			$object = method_exists($class, 'withTrashed') ? $class->withTrashed()->find($change->tracked_id) : $class->find($change->tracked_id);
-			$objectName = $object->name == null ? $object->title : $object->name;
-			$key .= ": " . $objectName;
-			$groupedChanges[ $key ] = Track::where('tracked_id', $object->id)
-										   ->where('tracked_type', get_class($object))
-										   ->where(function ($q) use ($where)
-										   {
-											   if (sizeof($where) == 3)
-												   $q->where($where[ 0 ], $where[ 1 ], $where[ 2 ]);
-										   })
-										   ->get();
-		}
+    public function tracked()
+    {
+        return $this->morphTo();
+    }
 
-		return $groupedChanges;
-	}
+    public static function createGroupedChanges( $changes, $where = [ ] )
+    {
+        $groupedChanges = [ ];
+
+        foreach ( $changes as $change )
+        {
+            $key = class_basename($change->tracked_type);
+            $class = App::make($change->tracked_type);
+            $object = method_exists($class, 'withTrashed') ? $class->withTrashed()
+                                                                   ->find($change->tracked_id) : $class->find($change->tracked_id);
+            $objectName = $object->name == null ? $object->title : $object->name;
+            $key .= ": " . $objectName;
+            $groupedChanges[ $key ] = Track::where('tracked_id', $object->id)
+                                           ->where('tracked_type', get_class($object))
+                                           ->where(function ( $q ) use ( $where )
+                                           {
+                                               if ( sizeof($where) == 3 )
+                                                   $q->where($where[ 0 ], $where[ 1 ], $where[ 2 ]);
+                                           })
+                                           ->get();
+        }
+
+        return $groupedChanges;
+    }
 
 }

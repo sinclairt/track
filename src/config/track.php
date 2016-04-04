@@ -1,9 +1,10 @@
 <?php
 
 return [
-	'user' => [
-		'model' => '',
-		'displayName' => 'username'
-	],
+    'user'      => [
+        'model'       => 'App\User',
+        'displayName' => 'username'
+    ],
+    'presenter' => \Sinclair\Track\TrackPresenter::class
 
 ];
