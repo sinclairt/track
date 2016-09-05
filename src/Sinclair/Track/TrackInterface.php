@@ -1,8 +1,23 @@
-<?php namespace Sinclair\Track;
+<?php
 
+namespace Sinclair\Track;
+
+/**
+ * Interface TrackInterface
+ * @package Sinclair\Track
+ */
 interface TrackInterface
 {
-	public function tracked();
+    /**
+     * @return mixed
+     */
+    public function tracked();
 
-	public static function createGroupedChanges($changes, $where = [ ]);
+    /**
+     * @param array $changes
+     * @param array $where
+     *
+     * @return mixed
+     */
+    public static function createGroupedChanges( $changes, $where = [] );
 }

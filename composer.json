@@ -9,10 +9,12 @@
   ],
   "require": {
     "php": ">=5.4.0",
-    "laracasts/presenter": "^0.2.1"
-  },
-  "suggest": {
-    "laracasts/presenter": "Use the built in presenter to show changes"
+    "laracasts/presenter": "^0.2.1",
+    "phpunit/phpunit": "~4.0",
+    "phpspec/phpspec": "~2.1",
+    "laracasts/testdummy": "~2.0",
+    "laravel/laravel": "dev-develop",
+    "sinclair/api-foundation": "^0.0.1"
   },
   "autoload": {
     "classmap": [
@@ -22,5 +24,18 @@
       "Sinclair\\Track\\": "src/"
     }
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "dev",
+  "scripts": {
+    "phpunit": "./vendor/bin/phpunit;"
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "http://satis.wtbidev.co.uk"
+    }
+  ],
+  "config": {
+    "preferred-install": "dist",
+    "secure-http": false
+  }
 }

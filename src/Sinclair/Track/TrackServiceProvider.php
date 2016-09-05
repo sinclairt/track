@@ -1,11 +1,18 @@
-<?php namespace Sinclair\Track;
+<?php
 
+namespace Sinclair\Track;
+
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
+use Sinclair\ApiFoundation\Providers\ApiFoundationServiceProvider;
 
+/**
+ * Class TrackServiceProvider
+ * @package Sinclair\Track
+ */
 class TrackServiceProvider extends ServiceProvider
 {
-
     /**
      * Indicates if loading of the provider is deferred.
      *
@@ -20,13 +27,24 @@ class TrackServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        AliasLoader::getInstance()->alias('Track', 'Sinclair\Track\Facades\Track');
+        AliasLoader::getInstance()
+                   ->alias('Track', 'Sinclair\Track\Facades\Track');
 
-        $this->publishes([
-            __DIR__ . '/../../migrations/' => base_path('/database/migrations'),
-            __DIR__ . '/../../config/' => config_path(),
-            __DIR__ . '/TrackPresenter.php' => app_path('Presenters/TrackPresenter.php')
-        ]);
+        $this->publishMigrations();
+
+        $this->publishPresenters();
+
+        $this->publishConfig();
+
+        $this->publishRoutes();
+
+        $this->routeModelBindings();
+
+        $this->registerRoutes();
+
+        $this->subscribeEventListener();
+
+        $this->app->register(ApiFoundationServiceProvider::class);
     }
 
     /**
@@ -46,7 +64,77 @@ class TrackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return array();
+        return [];
+    }
+
+    /**
+     *
+     */
+    private function publishMigrations()
+    {
+        $this->publishes([
+            __DIR__ . '/../../migrations/' => base_path('/database/migrations'),
+        ], 'migrations');
+    }
+
+    /**
+     *
+     */
+    private function publishPresenters()
+    {
+        $this->publishes([
+            __DIR__ . '/TrackPresenter.php' => app_path('Presenters/TrackPresenter.php')
+        ], 'presenters');
+    }
+
+    /**
+     *
+     */
+    private function publishConfig()
+    {
+        $this->publishes([
+            __DIR__ . '/../../config/' => config_path(),
+        ], 'config');
+    }
+
+    /**
+     *
+     */
+    private function publishRoutes()
+    {
+        $this->publishes([
+            __DIR__ . '/../../routes/' => explode('.', app()->version())[ 1 ] < 3 ? app_path('Http') : base_path('routes'),
+        ], 'routes');
+    }
+
+    /**
+     *
+     */
+    private function routeModelBindings()
+    {
+        $this->app[ 'router' ]->bind('track', function ( $value )
+        {
+            return Track::find($value);
+        });
+    }
+
+    /**
+     *
+     */
+    private function registerRoutes()
+    {
+        $this->app[ 'router' ]->group([ 'namespace' => 'Sinclair\Track', 'middleware' => 'api' ], function ()
+        {
+            require __DIR__ . '/../../routes/track_api.php';
+        });
+    }
+
+    /**
+     *
+     */
+    private function subscribeEventListener()
+    {
+        Event::subscribe(TrackEventListener::class);
     }
 
 }

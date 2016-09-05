@@ -2,267 +2,264 @@
 
 namespace Sinclair\Track;
 
-use Auth, Log, Exception, App;
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Auth, Log;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class TrackTrait
  * @package Sinclair\Track
+ *
+ * @property array $original
+ * @property array $attributes
+ * @method static created( $callback, $priority = 0 )
+ * @method static updating( $callback, $priority = 0 )
+ * @method static updated( $callback, $priority = 0 )
+ * @method static deleted( $callback, $priority = 0 )
+ * @method static restored( $callback, $priority = 0 )
+ * @method morphMany( $related, $name, $type = null, $id = null, $localKey = null )
  */
 trait TrackTrait
 {
+    /**
+     * @var array
+     */
+    public $syncResults = [];
 
-	/**
-	 * @var
-	 */
-	public $syncResults;
+    /**
+     * @var array
+     */
+    protected $previousData = [];
 
-	/**
-	 * @var
-	 */
-	protected $previousData;
+    /**
+     * @var array
+     */
+    protected $newData = [];
 
-	/**
-	 * @var
-	 */
-	protected $newData;
+    /**
+     * @var array
+     */
+    protected $timeStamps = [
+        'created_at',
+        'deleted_at',
+        'updated_at'
+    ];
 
-	/**
-	 * @var array
-	 */
-	protected $timeStamps = [
-		'created_at',
-		'deleted_at',
-		'updated_at'
-	];
+    /**
+     *
+     */
+    public static function bootTrackTrait()
+    {
+        static::created(function ( $model )
+        {
+            return $model->log('Created', $model);
+        });
 
-	/**
-	 *
-	 */
-	public static function bootTrackTrait()
-	{
+        static::updating(function ( $model )
+        {
+            $model->preSave();
+        });
 
-//		parent::boot();
+        static::updated(function ( $model )
+        {
+            $model->postSave();
+        });
 
-		// Model Events: creating, created, updating, updated, saving, saved, deleting, deleted, restoring, restored
+        static::deleted(function ( $model )
+        {
+            return $model->log('Deleted', $model);
+        });
 
-		static::created(function ($model)
-		{
-			return $model->log('Created', $model);
-		});
+        if ( self::usesSoftDeletes() )
+            static::restored(function ( $model )
+            {
+                return $model->log('Restored', $model);
+            });
+    }
 
-		static::updating(function ($model)
-		{
-			$model->preSave();
-		});
+    /**
+     * @return bool
+     */
+    private static function usesSoftDeletes()
+    {
+        return in_array(SoftDeletes::class, class_uses(static::class));
+    }
 
-		static::updated(function ($model)
-		{
-			$model->postSave();
-		});
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function trackedChanges()
+    {
+        return $this->morphMany(Track::class, 'tracked');
+    }
 
-		static::deleted(function ($model)
-		{
-			return $model->log('Deleted', $model);
-		});
+    /**
+     * @param $event
+     * @param $model
+     * @param array $data
+     */
+    public function log( $event, $model, $data = [] )
+    {
+        $attributes = array_replace($data, $this->createData($event, $model));
 
-		// this method is provided by the soft delete trait -- if this throws and exception we can just ignore this method
-		try
-		{
-			static::restored(function ($model)
-			{
-				return $model->log('Restored', $model);
-			});
+        $attributes = array_filter($attributes, [ new Track, 'isFillable' ], ARRAY_FILTER_USE_KEY);
 
-		}
-		catch (Exception $e)
-		{
-			//do nothing
-		}
+        Track::create($attributes);
+    }
 
-	}
+    /**
+     *
+     */
+    public function preSave()
+    {
+        $this->previousData = array_filter($this->original, [ $this, 'isComparable' ], ARRAY_FILTER_USE_BOTH);
 
-	/**
-	 * @return mixed
-	 */
-	public function trackedChanges()
-	{
-		return $this->morphMany('Sinclair\Track\Track', 'tracked');
-	}
+        $this->newData = array_intersect_key($this->attributes, $this->previousData);
+    }
 
-	/**
-	 * @param $event
-	 * @param $model
-	 * @param null $data
-	 */
-	public function log($event, $model, $data = null)
-	{
-		$data = is_null($data) ? $this->createData($event, $model) : $data;
+    /**
+     * @param $value
+     * @param $key
+     *
+     * @return bool
+     */
+    private function isComparable( $value, $key )
+    {
+        return !is_object($value) || !in_array($key, $this->timeStamps);
+    }
 
-		Track::create($data);
-	}
+    /**
+     *
+     */
+    public function postSave()
+    {
+        $differences = array_diff_assoc($this->newData, $this->previousData);
 
-	/**
-	 *
-	 */
-	public function preSave()
-	{
-		// get values
-		$this->previousData = $this->original;
-		$this->newData = $this->attributes;
+        array_walk($differences, function ( &$item, $key )
+        {
+            $item = [ 'new' => $item, 'old' => array_get($this->previousData, $key) ];
+        });
 
-		// drop anything we cant compare
-		foreach ($this->newData as $key => $value)
-		{
-			$this->removeUnComparable($value, $key);
+        if ( !$this->isRestoring($differences) )
+            $this->logChanges($differences);
+    }
 
-		}
+    /**
+     * @param $event
+     * @param $model
+     *
+     * @return array
+     */
+    public function createData( $event, $model )
+    {
+        return [
+            'user_id'      => $this->getUserId(),
+            'tracked_type' => get_class($model),
+            'tracked_id'   => $model->id,
+            'event'        => $event
+        ];
+    }
 
-		$this->dropTimeStamps();
+    /**
+     * @param $changed
+     * @param $model
+     * @param $method
+     */
+    public function logChanges( $changed, $model = null, $method = 'Updated' )
+    {
+        $model = is_null($model) ? $this : $model;
 
-	}
+        array_walk($changed, [ $this, 'formatChanges' ], compact('model', 'method'));
+    }
 
-	/**
-	 *
-	 */
-	public function postSave()
-	{
-		$changed = [ ];
-		foreach ($this->newData as $key => $value)
-		{
-			$changed = $this->checkForChange($key, $value, $changed);
-		}
+    private function formatChanges( $value, $key, $args )
+    {
+        extract($args);
+        $data = [
+            'field'     => $key,
+            'new_value' => $value[ 'new' ],
+            'old_value' => $value[ 'old' ]
+        ];
 
-		$this->logChanges($changed);
-	}
+        $data = array_replace($data, $this->createData($method, $model));
 
-	/**
-	 * @param $event
-	 * @param $model
-	 *
-	 * @return array
-	 */
-	public function createData($event, $model)
-	{
+        $this->log('Updated', $model, $data);
+    }
 
-		$user_id = is_null(Auth::user()) ? '' : Auth::user()
-													->getAuthIdentifier();
+    /**
+     * There is no event fired for syncing pivots so
+     * this method must be called following a sync and
+     * the result of a sync passed in
+     *
+     * @param $changes
+     * @param TrackTrait $model
+     * @param $class
+     */
+    public function trackPivotChanges( $changes, $model, $class )
+    {
+        $data = $this->trackAttached($changes[ 'attached' ], $model, $class);
 
-		return [
-			'user_id'      => $user_id,
-			'tracked_type' => get_class($model),
-			'tracked_id'   => $model->id,
-			'event'        => $event
-		];
-	}
+        $this->trackDetached($changes[ 'detached' ], $model, $class, $data);
+    }
 
-	/**
-	 * @param $key
-	 * @param $value
-	 * @param $changed
-	 *
-	 * @return mixed
-	 */
-	private function checkForChange($key, $value, $changed)
-	{
-		if (isset($this->previousData[ $key ]))
-		{
-			if ($this->previousData[ $key ] !== $value)
-			{
-				$changed[ $key ] = [
-					'new' => $value,
-					'old' => $this->previousData[ $key ]
-				];
+    /**
+     * @param array $changes
+     * @param TrackTrait $model
+     * @param string $class
+     * @param array $data
+     *
+     * @return array
+     */
+    private function trackAttached( $changes, $model, $class, $data = [] )
+    {
+        foreach ( $changes as $item )
+            $data[ $class ] = [
+                'new' => $item,
+                'old' => null
+            ];
 
-				return $changed;
-			}
-		}
-		else
-		{
-			$changed[ $key ] = [
-				'new' => $value,
-				'old' => ''
-			];
-		}
+        $model->logChanges($data, $model, 'Attached');
 
-		return $changed;
-	}
+        return $data;
+    }
 
-	/**
-	 * @param $changed
-	 * @param $model
-	 * @param $method
-	 */
-	public function logChanges($changed, $model = null, $method = 'Updated')
-	{
-		$model = is_null($model) ? $this : $model;
+    /**
+     * @param array $changes
+     * @param TrackTrait $model
+     * @param string $class
+     * @param array $data
+     *
+     * @return array
+     */
+    private function trackDetached( $changes, $model, $class, $data )
+    {
+        foreach ( $changes as $item )
+            $data[ $class ] = [
+                'new' => null,
+                'old' => $item
+            ];
 
-		foreach ($changed as $key => $value)
-		{
-			$data = $this->createData($method, $this);
-			$data[ 'field' ] = $key;
-			$data[ 'new_value' ] = $value[ 'new' ];
-			$data[ 'old_value' ] = $value[ 'old' ];
+        $model->logChanges($data, $model, 'Detached');
 
-			$this->log("Updated", $model, $data);
-		}
-	}
+        return $data;
+    }
 
-	/**
-	 *
-	 */
-	private function dropTimeStamps()
-	{
-		// drop time stamps
-		foreach ($this->timeStamps as $value)
-		{
-			unset($this->previousData[ $value ]);
-			unset($this->newData[ $value ]);
-		}
-	}
+    /**
+     * @return string
+     */
+    private function getUserId()
+    {
+        return is_null(Auth::user()) ? '' : Auth::user()
+                                                ->getAuthIdentifier();
+    }
 
-	/**
-	 * @param $value
-	 * @param $key
-	 */
-	private function removeUnComparable($value, $key)
-	{
-		if (gettype($value) == 'object')
-		{
-			unset($this->previousData[ $key ]);
-			unset($this->newData[ $key ]);
-		}
-	}
-
-	/**
-	 * There is no event fired for syncing pivots so
-	 * this method must be called following a sync and
-	 * the result of a sync passed in
-	 *
-	 * @param $changes
-	 * @param $model
-	 * @param $class
-	 */
-	public function trackPivotChanges($changes, $model, $class)
-	{
-		$data = [ ];
-		foreach ($changes[ 'attached' ] as $item)
-		{
-			$data[ $class ] = [
-				'new' => $item,
-				'old' => null
-			];
-			$model->logChanges($data, $model, 'Attached');
-		}
-
-		foreach ($changes[ 'detached' ] as $item)
-		{
-			$data[ $class ] = [
-				'new' => null,
-				'old' => $item
-			];
-			$model->logChanges($data, $model, 'Detached');
-		}
-	}
+    /**
+     * @param $differences
+     *
+     * @return bool
+     */
+    private function isRestoring( $differences )
+    {
+        return sizeof($differences) == 1 && head(array_keys($differences)) == 'deleted_at';
+    }
 
 }
