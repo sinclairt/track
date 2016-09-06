@@ -2,8 +2,13 @@
 
 namespace Sinclair\Track;
 
+use Illuminate\Pagination\LengthAwarePaginator;
 use Sinclair\Repository\Repositories\Repository;
 
+/**
+ * Class TrackRepository
+ * @package Sinclair\Track
+ */
 class TrackRepository extends Repository implements \Sinclair\Repository\Contracts\Repository
 {
     /**
@@ -16,9 +21,19 @@ class TrackRepository extends Repository implements \Sinclair\Repository\Contrac
         $this->model = $model;
     }
 
+    /**
+     * @param $object
+     *
+     * @return LengthAwarePaginator
+     */
     public function byObject( $object )
     {
-        $this->setModel($object->trackedChanges())
-             ->filterPaginated(request(), request('rows', 15), request('orderBy', null), request('direction', 'asc'), request('columns', [ '*' ]), request('paginationName', 'page'), request('search', true));
+        $this->query = $object->trackedChanges();
+
+        foreach ( request()->except('_token') as $key => $value )
+            $this->{'filter' . studly_case($key)}(request(), request('search', true));
+
+        return $this->sort($this->query, request('orderBy'), request('direction'))
+                    ->paginate(request('rows'), request('columns', [ '*' ]), request('pagination_name', 'page'));
     }
 }

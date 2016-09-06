@@ -100,11 +100,11 @@ class TraitTest extends DbTestCase
      */
     public function test_a_change_is_logged_when_a_model_is_updated_without_a_logged_in_user()
     {
-        $this->test_a_change_is_logged_when_a_model_is_created_without_a_user_logged_in();
-
-        $dummy = Dummy::latest()
-                      ->get()
-                      ->last();
+        $dummy = Dummy::create([
+            'name'   => $this->faker->word,
+            'number' => $this->faker->unique()->ean13,
+            'plan'   => $this->faker->word,
+        ]);
 
         $created_change = $dummy->trackedChanges()
                                 ->latest()
@@ -139,11 +139,19 @@ class TraitTest extends DbTestCase
      */
     public function test_a_change_is_logged_when_a_model_is_updated_with_a_logged_in_user()
     {
-        $this->test_a_change_is_logged_when_a_model_is_created_with_a_user_logged_in();
+        $user = \App\User::create([
+            'name'     => $this->faker->name,
+            'email'    => $this->faker->email,
+            'password' => $this->faker->word
+        ]);
 
-        $dummy = Dummy::latest()
-                      ->get()
-                      ->last();
+        auth()->login($user);
+
+        $dummy = Dummy::create([
+            'name'   => $this->faker->word,
+            'number' => $this->faker->unique()->ean13,
+            'plan'   => $this->faker->word,
+        ]);
 
         $created_change = $dummy->trackedChanges()
                                 ->latest()

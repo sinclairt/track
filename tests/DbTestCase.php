@@ -5,10 +5,25 @@ use Illuminate\Filesystem\Filesystem;
 
 require_once __DIR__ . '/../src/Sinclair/Track/TrackServiceProvider.php';
 
+/**
+ * Class DbTestCase
+ */
 abstract class DbTestCase extends \Illuminate\Foundation\Testing\TestCase
 {
+    /**
+     * @var mixed
+     */
+    protected $baseUrl;
 
-    protected $baseUrl = 'http://tracktrait.local';
+    /**
+     * DbTestCase constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->baseUrl = env('APP_URL', 'http://tracktrait.local');
+    }
 
     /**
      * Creates the application.

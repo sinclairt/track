@@ -77,14 +77,6 @@ trait TrackTrait
     }
 
     /**
-     * @return bool
-     */
-    private static function usesSoftDeletes()
-    {
-        return in_array(SoftDeletes::class, class_uses(static::class));
-    }
-
-    /**
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function trackedChanges()
@@ -97,8 +89,10 @@ trait TrackTrait
      * @param $model
      * @param array $data
      */
-    public function log( $event, $model, $data = [] )
+    public function log( $event, $model = null, $data = [] )
     {
+        $model = is_null($model) ? $this : $model;
+
         $attributes = array_replace($data, $this->createData($event, $model));
 
         $attributes = array_filter($attributes, [ new Track, 'isFillable' ], ARRAY_FILTER_USE_KEY);
@@ -107,9 +101,90 @@ trait TrackTrait
     }
 
     /**
+     * There is no event fired for syncing pivots so
+     * this method must be called following a sync and
+     * the result of a sync passed in
+     *
+     * @param $changes
+     * @param TrackTrait $model
+     * @param $class
+     */
+    public function trackPivotChanges( $changes, $model, $class )
+    {
+        $this->trackAttached($changes[ 'attached' ], $model, $class);
+
+        $this->trackDetached($changes[ 'detached' ], $model, $class);
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeCreatedBy( $query, $user_id )
+    {
+        return $query->whereHas('trackedChanges', function ( $q ) use ( $user_id )
+        {
+            $q->createdBy($user_id);
+        });
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeUpdatedBy( $query, $user_id )
+    {
+        return $query->whereHas('trackedChanges', function ( $q ) use ( $user_id )
+        {
+            $q->updatedBy($user_id);
+        });
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeDeletedBy( $query, $user_id )
+    {
+        return $query->withTrashed()
+                     ->whereHas('trackedChanges', function ( $q ) use ( $user_id )
+                     {
+                         $q->deletedBy($user_id);
+                     });
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeRestoredBy( $query, $user_id )
+    {
+        return $query->whereHas('trackedChanges', function ( $q ) use ( $user_id )
+        {
+            $q->restoredBy($user_id);
+        });
+    }
+
+    /**
+     * @return bool
+     */
+    private static function usesSoftDeletes()
+    {
+        return in_array(SoftDeletes::class, class_uses(static::class));
+    }
+
+    /**
      *
      */
-    public function preSave()
+    protected function preSave()
     {
         $this->previousData = array_filter($this->original, [ $this, 'isComparable' ], ARRAY_FILTER_USE_BOTH);
 
@@ -130,7 +205,7 @@ trait TrackTrait
     /**
      *
      */
-    public function postSave()
+    protected function postSave()
     {
         $differences = array_diff_assoc($this->newData, $this->previousData);
 
@@ -149,7 +224,7 @@ trait TrackTrait
      *
      * @return array
      */
-    public function createData( $event, $model )
+    protected function createData( $event, $model )
     {
         return [
             'user_id'      => $this->getUserId(),
@@ -164,41 +239,31 @@ trait TrackTrait
      * @param $model
      * @param $method
      */
-    public function logChanges( $changed, $model = null, $method = 'Updated' )
+    private function logChanges( $changed, $model = null, $method = 'Updated' )
     {
         $model = is_null($model) ? $this : $model;
 
         array_walk($changed, [ $this, 'formatChanges' ], compact('model', 'method'));
     }
 
+    /**
+     * @param $value
+     * @param $key
+     * @param $args
+     */
     private function formatChanges( $value, $key, $args )
     {
         extract($args);
+
         $data = [
             'field'     => $key,
             'new_value' => $value[ 'new' ],
             'old_value' => $value[ 'old' ]
         ];
 
-        $data = array_replace($data, $this->createData($method, $model));
+        $data = array_replace($this->createData($method, $model), $data);
 
-        $this->log('Updated', $model, $data);
-    }
-
-    /**
-     * There is no event fired for syncing pivots so
-     * this method must be called following a sync and
-     * the result of a sync passed in
-     *
-     * @param $changes
-     * @param TrackTrait $model
-     * @param $class
-     */
-    public function trackPivotChanges( $changes, $model, $class )
-    {
-        $data = $this->trackAttached($changes[ 'attached' ], $model, $class);
-
-        $this->trackDetached($changes[ 'detached' ], $model, $class, $data);
+        $this->log($method, $model, $data);
     }
 
     /**
@@ -212,14 +277,14 @@ trait TrackTrait
     private function trackAttached( $changes, $model, $class, $data = [] )
     {
         foreach ( $changes as $item )
+        {
             $data[ $class ] = [
                 'new' => $item,
                 'old' => null
             ];
 
-        $model->logChanges($data, $model, 'Attached');
-
-        return $data;
+            $model->logChanges($data, $model, 'Attached');
+        }
     }
 
     /**
@@ -230,17 +295,17 @@ trait TrackTrait
      *
      * @return array
      */
-    private function trackDetached( $changes, $model, $class, $data )
+    private function trackDetached( $changes, $model, $class, $data = [] )
     {
         foreach ( $changes as $item )
+        {
             $data[ $class ] = [
                 'new' => null,
                 'old' => $item
             ];
 
-        $model->logChanges($data, $model, 'Detached');
-
-        return $data;
+            $model->logChanges($data, $model, 'Detached');
+        }
     }
 
     /**

@@ -40,13 +40,15 @@ class TrackController extends Controller
      */
     public function byObject( ByObject $request )
     {
-        $class = new  $request->get('object_class');
+        $class = $request->input('object_class');
 
-        $object = $class->find($request->get('object_id'));
+        $class = new  $class;
+
+        $object = $class->find($request->input('object_id'));
 
         if ( in_array(SoftDeletes::class, class_uses($class)) && is_null($object) )
             $object = $class->withTrashed()
-                            ->find($request->get('object_id'));
+                            ->find($request->input('object_id'));
 
         return $this->collection($this->repository->byObject($object));
     }

@@ -14,6 +14,19 @@ class Track extends Model implements TrackInterface
     use PresentableTrait;
 
     /**
+     * @var array
+     */
+    public $filters = [
+        'tracked_type',
+        'tracked_id',
+        'user_id',
+        'event',
+        'field',
+        'old_value',
+        'new_value',
+    ];
+
+    /**
      * @var mixed|string
      */
     protected $presenter = 'Sinclair\Track\TrackPresenter';
@@ -174,5 +187,113 @@ class Track extends Model implements TrackInterface
     public function scopeFilterNewValue( $query, $value, $trashed = false )
     {
         return $query->where('new_value', $value);
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeCreatedBy( $query, $user_id )
+    {
+        return $query->where('user_id', $user_id)
+                     ->created();
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeUpdatedBy( $query, $user_id )
+    {
+        return $query->where('user_id', $user_id)
+                     ->updated();
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeDeletedBy( $query, $user_id )
+    {
+        return $query->where('user_id', $user_id)
+                     ->deleted();
+    }
+
+    /**
+     * @param $query
+     * @param $user_id
+     *
+     * @return mixed
+     */
+    public function scopeRestoredBy( $query, $user_id )
+    {
+        return $query->where('user_id', $user_id)
+                     ->restored();
+    }
+
+    /**
+     * @param $query
+     *
+     * @return mixed
+     */
+    public function scopeCreated( $query )
+    {
+        return $query->where('event', 'Created');
+    }
+
+    /**
+     * @param $query
+     *
+     * @return mixed
+     */
+    public function scopeUpdated( $query )
+    {
+        return $query->where('event', 'Updated');
+    }
+
+    /**
+     * @param $query
+     *
+     * @return mixed
+     */
+    public function scopeDeleted( $query )
+    {
+        return $query->where('event', 'Deleted');
+    }
+
+    /**
+     * @param $query
+     *
+     * @return mixed
+     */
+    public function scopeRestored( $query )
+    {
+        return $query->where('event', 'Restored');
+    }
+
+    /**
+     * @param $query
+     *
+     * @return mixed
+     */
+    public function scopeAttached( $query )
+    {
+        return $query->where('event', 'Attached');
+    }
+
+    /**
+     * @param $query
+     *
+     * @return mixed
+     */
+    public function scopeDetached( $query )
+    {
+        return $query->where('event', 'Detached');
     }
 }
