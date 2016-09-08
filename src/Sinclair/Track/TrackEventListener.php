@@ -30,7 +30,7 @@ class TrackEventListener
      */
     public function subscribe( $events )
     {
-        foreach ( config('track.events') as $event )
+        foreach ( config('track.events', []) as $event )
             $events->listen($event, self::class . '@track');
     }
 }
