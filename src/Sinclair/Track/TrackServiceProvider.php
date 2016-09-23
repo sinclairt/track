@@ -38,7 +38,7 @@ class TrackServiceProvider extends ServiceProvider
 
         $this->publishRoutes();
 
-        $this->routeModelBindings();
+//        $this->routeModelBindings();
 
 //        $this->registerRoutes();
 

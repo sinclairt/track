@@ -2,8 +2,10 @@
 
 use Illuminate\Filesystem\ClassFinder;
 use Illuminate\Filesystem\Filesystem;
+use Sinclair\Track\Track;
 
 require_once __DIR__ . '/../src/Sinclair/Track/TrackServiceProvider.php';
+require_once __DIR__ . '/../src/Sinclair/Track/Track.php';
 
 /**
  * Class DbTestCase

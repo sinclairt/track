@@ -29,6 +29,16 @@ class ApiTest extends DbTestCase
         $this->faker = Faker\Factory::create();
 
         \Artisan::call('vendor:publish', [ '--tag' => 'config' ]);
+
+        $this->app[ 'router' ]->bind('track', function ( $value )
+        {
+            return Track::find($value);
+        });
+
+        $this->app[ 'router' ]->group([ 'middleware' => 'bindings' ], function ()
+        {
+            require __DIR__ . '/../src/routes/track_api.php';
+        });
     }
 
     /**
@@ -38,7 +48,7 @@ class ApiTest extends DbTestCase
     {
         $this->createDummies(20);
 
-        $response = $this->get('/api/v1/track')->response;
+        $response = $this->get('/track')->response;
         $content = json_decode($response->content());
 
         $this->assertEquals(15, sizeof($content->data));
@@ -58,7 +68,7 @@ class ApiTest extends DbTestCase
     {
         $this->createDummies(20);
 
-        $response = $this->json('POST', '/api/v1/track/filter', [])->response;
+        $response = $this->json('POST', '/track/filter', [])->response;
 
         $content = json_decode($response->content());
 
@@ -71,7 +81,7 @@ class ApiTest extends DbTestCase
     {
         $this->createDummies(20);
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'tracked_id' => 1,
         ])->response;
 
@@ -89,7 +99,7 @@ class ApiTest extends DbTestCase
         $this->createDummies(20);
         $this->createSoftDeleteDummies(20);
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'tracked_type' => Dummy::class,
         ])->response;
 
@@ -130,7 +140,7 @@ class ApiTest extends DbTestCase
 
         $this->createDummies(5);
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'user_id' => $user1->id,
         ])->response;
 
@@ -151,7 +161,7 @@ class ApiTest extends DbTestCase
     {
         $this->createDummies(20);
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'event' => 'Created',
         ])->response;
 
@@ -178,7 +188,7 @@ class ApiTest extends DbTestCase
         $dummy->name = $this->faker->word;
         $dummy->save();
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'event' => 'Updated',
         ])->response;
 
@@ -207,7 +217,7 @@ class ApiTest extends DbTestCase
 
         $dummy->restore();
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'event' => 'Restored',
         ])->response;
 
@@ -234,7 +244,7 @@ class ApiTest extends DbTestCase
 
         $dummy->delete();
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'event' => 'Deleted',
         ])->response;
 
@@ -253,7 +263,7 @@ class ApiTest extends DbTestCase
     {
         event(new MyCustomEvent());
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'event' => 'MyCustomEvent',
         ])->response;
 
@@ -282,7 +292,7 @@ class ApiTest extends DbTestCase
 
         $dummy->trackPivotChanges($changes, $dummy, 'MyRandomClass');
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'event' => 'Attached',
         ])->response;
 
@@ -313,7 +323,7 @@ class ApiTest extends DbTestCase
 
         $dummy->trackPivotChanges($changes, $dummy, 'MyRandomClass');
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'event' => 'Detached',
         ])->response;
 
@@ -337,7 +347,7 @@ class ApiTest extends DbTestCase
             $dummy->save();
         }
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'field' => 'name',
         ])->response;
 
@@ -365,7 +375,7 @@ class ApiTest extends DbTestCase
             $dummy->save();
         }
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
+        $response = $this->json('POST', '/track/filter', [
             'new_value' => head(array_keys(array_count_values($words))),
         ])->response;
 
@@ -384,34 +394,33 @@ class ApiTest extends DbTestCase
 
     public function test_i_can_filter_changes_by_the_old_value()
     {
-        $dummies = $this->createDummies(10);
+        $dummies = $this->createDummies(10, [ 'name' => 'foo' ]);
 
-        $words = collect($dummies)
-            ->pluck('name')
-            ->all();
+        $this->createDummies(10, [ 'name' => 'bar' ]);
 
         foreach ( $dummies as $dummy )
         {
-            $dummy->name = $this->faker->word;
+            $dummy->name = 'baz';
             $dummy->save();
         }
 
-        $response = $this->json('POST', '/api/v1/track/filter', [
-            'old_value' => head(array_keys(array_count_values($words))),
+        $response = $this->json('POST', '/track/filter', [
+            'old_value' => 'foo',
         ])->response;
 
         $content = json_decode($response->content());
 
         $this->checkStructure($content);
 
-        foreach ( collect($dummies)
-                      ->where('name', head(array_keys(array_count_values($words))))
-                      ->all() as $key => $dummy )
-            $this->checkAttributes($dummy->trackedChanges()
-                                         ->updated()
-                                         ->first(), $content, $key);
+        $this->assertEquals(10, sizeof($content->data));
 
-        $this->assertEquals(head(array_count_values($words)), sizeof($content->data));
+        $expected = Track::where('old_value', 'foo')
+                         ->get();
+
+        foreach ( $expected as $key => $change )
+        {
+            $this->checkAttributes($change, $content, $key);
+        }
     }
 
     public function test_i_can_get_a_single_change()
@@ -421,7 +430,7 @@ class ApiTest extends DbTestCase
         $track = $dummy->trackedChanges
             ->first();
 
-        $response = $this->json('GET', '/api/v1/track/' . $track->id)->response;
+        $response = $this->json('GET', '/track/' . $track->id)->response;
 
         $content = json_decode($response->content());
 
@@ -437,7 +446,7 @@ class ApiTest extends DbTestCase
 
     public function test_i_can_do_not_get_a_single_change_when_i_supply_a_non_existent_id()
     {
-        $response = $this->json('GET', '/api/v1/track/1')->response;
+        $response = $this->json('GET', '/track/1')->response;
 
         $this->assertEquals(\Illuminate\Http\JsonResponse::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
     }
@@ -469,7 +478,7 @@ class ApiTest extends DbTestCase
 
         // should have 12 changes for this dummy object
 
-        $response = $this->json('POST', '/api/v1/track/object', [
+        $response = $this->json('POST', '/track/object', [
             'object_class' => DummySoftDelete::class,
             'object_id'    => $dummy->id
         ])->response;
@@ -483,7 +492,7 @@ class ApiTest extends DbTestCase
 
     public function test_i_get_a_forbidden_response_if_i_supply_a_bad_request_for_object_changes()
     {
-        $response = $this->json('POST', '/api/v1/track/object', [])->response;
+        $response = $this->json('POST', '/track/object', [])->response;
 
         $this->assertEquals('{"object_class":["The object class field is required."],"object_id":["The object id field is required."]}', $response->content());
     }
@@ -518,27 +527,29 @@ class ApiTest extends DbTestCase
 
         $api = $content->data[ $key ]->attributes;
 
-        $attributes = [ 'tracked_type', 'tracked_id', 'user_id', 'event', 'field', 'old_value', 'new_value', 'created_at', 'updated_at' ];
+        $attributes = [ 'tracked_type', 'tracked_id', 'user_id', 'event', 'field', 'old_value', 'new_value', 'created_at' ];
 
         foreach ( $attributes as $attribute )
-            $this->assertTrue($db->$attribute == $api->$attribute);
+            $this->assertEquals($db->$attribute, $api->$attribute);
 
         $this->assertTrue($content->data[ $key ]->id == $db->id);
     }
 
     /**
-     * @param $count
+     * @param int $count
+     *
+     * @param array $attributes
      *
      * @return array
      */
-    private function createDummies( $count )
+    private function createDummies( $count = 1, $attributes = [] )
     {
         $dummies = [];
         for ( $i = 0; $i < $count; $i++ )
             $dummies[] = Dummy::create([
-                'name'   => $this->faker->word,
-                'number' => $this->faker->unique()->ean13,
-                'plan'   => $this->faker->word,
+                'name'   => array_get($attributes, 'name', $this->faker->word),
+                'number' => array_get($attributes, 'number', $this->faker->unique()->ean13),
+                'plan'   => array_get($attributes, 'plan', $this->faker->word),
             ]);
 
         return $dummies;
