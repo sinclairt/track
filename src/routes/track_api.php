@@ -1,17 +1,17 @@
 <?php
 
-Route::get('/api/v1/track', [
-    'uses' => 'TrackController@index'
+Route::get('/track', [
+    'uses' => \Sinclair\Track\TrackController::class . '@index'
 ]);
 
-Route::post('/api/v1/track/filter', [
-    'uses' => 'TrackController@filter'
+Route::post('/track/filter', [
+    'uses' => \Sinclair\Track\TrackController::class . '@filter'
 ]);
 
-Route::get('/api/v1/track/{track}', [
-    'uses' => 'TrackController@show'
+Route::get('/track/{track}', [
+    'uses' => \Sinclair\Track\TrackController::class . '@show'
 ]);
 
-Route::post('/api/v1/track/object/', [
-    'uses' => 'TrackController@byObject'
+Route::post('/track/object/', [
+    'uses' => \Sinclair\Track\TrackController::class . '@byObject'
 ]);

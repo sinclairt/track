@@ -40,7 +40,7 @@ class TrackServiceProvider extends ServiceProvider
 
         $this->routeModelBindings();
 
-        $this->registerRoutes();
+//        $this->registerRoutes();
 
         $this->subscribeEventListener();
 
