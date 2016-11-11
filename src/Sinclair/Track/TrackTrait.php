@@ -313,7 +313,7 @@ trait TrackTrait
      */
     private function getUserId()
     {
-        return is_null(Auth::user()) ? '' : Auth::user()
+        return is_null(Auth::user()) ? 0 : Auth::user()
                                                 ->getAuthIdentifier();
     }
 
