@@ -11,4 +11,5 @@ return [
 		MyCustomEvent::class,
 	],
 	'table'     => 'changes',
+	'non-user-value'  => 0,
 ];
