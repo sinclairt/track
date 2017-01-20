@@ -39,7 +39,7 @@ trait TrackTrait
 	/**
 	 * @var array
 	 */
-	protected $timeStamps = [
+	protected $datesToTrack = [
 		'created_at',
 		'deleted_at',
 		'updated_at',
@@ -202,7 +202,7 @@ trait TrackTrait
 	 */
 	private function isComparable( $value, $key )
 	{
-		return ! is_object( $value ) || ! in_array( $key, $this->timeStamps );
+		return ! is_object( $value ) || ! in_array( $key, $this->datesToTrack );
 	}
 
 	/**
