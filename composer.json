@@ -33,11 +33,10 @@
   "repositories": [
     {
       "type": "composer",
-      "url": "http://satis.dev"
+      "url": "https://satis.ominor.com"
     }
   ],
   "config": {
-    "preferred-install": "dist",
-    "secure-http": false
+    "preferred-install": "dist"
   }
 }
