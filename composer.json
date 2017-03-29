@@ -1,6 +1,7 @@
 {
   "name": "sinclair/track",
-  "description": "",
+  "description": "Track changes to your models and any custom events you'd like to keep track of",
+  "license": "MIT",
   "authors": [
     {
       "name": "Tom Sinclair",
