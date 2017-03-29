@@ -1,17 +1,6 @@
 # Installation #
 
-First ensure you have listed the Satis Repository in the composer.json file:
-
-```
- "repositories": [
-         {
-             "type": "composer",
-             "url": "http://satis.wtbidev.co.uk"
-         }
-     ]
-```
-
-Then `composer require sinclair/track`
+`composer require sinclair/track`
 
 Next you need to register the service provider in app/config/app.php:
 
@@ -46,7 +35,7 @@ $group->trackPivotChanges($changes, $group, App\Repositories\Addressee\Addressee
 
 It is not necessary to use a fully qualified class name however if you want to use the built in presenter then you will, otherwise you can create your own implementation.
 
-###Custom Logging
+### Custom Logging
 You can log anything on an object by calling:
 
 ```{object}::log($event, $model = null, $data = [])```
@@ -61,12 +50,12 @@ The model will default to the current object if not passed but it is possible to
 * tracked_type <i>this will be taken from your supplied model anyway</i>
 * tracked_id <i>as above</i>
 
-###Log Events
+### Log Events
 Add any event class to the events key inside the track config, and the track package will log the event, it will not attach it to any object, but it will be available via the Track model directly.
 
 There is currently a custom example event, you can remove that (or keep if you fancy).
 
-# Api
+# API
 
 There are 4 routes into the package:
 * <i>GET</i> /api/v1/track - get all tracked changes this is paginated
@@ -83,7 +72,7 @@ There are 4 routes into the package:
     * object_id
     * object_class
     
-###API Paginated Calls
+### API Paginated Calls
 You can set the following parameters for paginated calls:
 * rows (integer) <i>default 15</i> The number of rows per page
 * search (bool) <i>default true</i> Whether to use the search function during filter
@@ -119,4 +108,3 @@ The following text will be returned:
 The presenter uses the Auth User model by default but you can change this in the config file.
 
 The field name used for display is also listed here with username being the default. Equally, when the Presenter is called and it names the attached/detached object it is using the field name of "name" by default. There is no configuration for this as it could be different for each class, in this circumstance you can use the Presenter as a template and create your own, or ensure your tables that have pivots have a name field on them.
-
