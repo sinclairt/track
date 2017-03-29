@@ -1,6 +1,6 @@
 # Installation #
 
-`composer require sinclair/track`
+`composer require sinclairt/track`
 
 Next you need to register the service provider in app/config/app.php:
 
